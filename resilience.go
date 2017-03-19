@@ -20,14 +20,17 @@ func executeCommand(returnChan chan<- interface{}, command func(chan<- interface
 	case result := <-commandChan:
 		returnChan <- result
 	case <-timeOut.C:
-		if fallback != nil {
-			fallbackChan := make(chan interface{})
+		executeFallBack(returnChan, fallback)
+	}
+}
+func executeFallBack(returnChan chan<- interface{}, fallback func(chan<- interface{})) {
+	if fallback != nil {
+		fallbackChan := make(chan interface{})
 
-			go fallback(fallbackChan)
+		go fallback(fallbackChan)
 
-			returnChan <- <-fallbackChan
-		} else {
-			returnChan <- nil
-		}
+		returnChan <- <-fallbackChan
+	} else {
+		returnChan <- nil
 	}
 }
