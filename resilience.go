@@ -10,22 +10,22 @@ func Do(command func(chan<- interface{}), fallback func(chan<- interface{})) cha
 	return returnChan
 }
 
-func executeCommand(returnChan chan<- interface{},command func(chan<- interface{}), fallback func(chan<- interface{})){
+func executeCommand(returnChan chan<- interface{}, command func(chan<- interface{}), fallback func(chan<- interface{})) {
 	commandChan := make(chan interface{})
 	go command(commandChan)
 
 	timeOut := time.NewTimer(time.Second)
 
 	select {
-	case result := <- commandChan:
+	case result := <-commandChan:
 		returnChan <- result
-	case <- timeOut.C:
+	case <-timeOut.C:
 		if fallback != nil {
 			fallbackChan := make(chan interface{})
 
 			go fallback(fallbackChan)
 
-			returnChan <- <- fallbackChan
+			returnChan <- <-fallbackChan
 		} else {
 			returnChan <- nil
 		}
