@@ -1,4 +1,4 @@
-package ratel
+package resilience
 
 import "time"
 
