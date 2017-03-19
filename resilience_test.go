@@ -31,59 +31,57 @@ func TestOneDoSingleResponse(t *testing.T) {
 		sleep time.Duration
 		fallback func(result chan<- interface{})
 		want  interface{}
+		maxDiff time.Duration
 	} {
-		{"Test", 0, nil, "Test"},
-		{"Test", 800, nil,"Test"},
-		{"Test", 1200, nil,nil},
-		{"Test", 1002, nil,nil},
-		{"Test", 998, nil,"Test"},
-		{"Test", 0, stringFallBack, "Test"},
-		{"Test", 800, stringFallBack,"Test"},
-		{"Test", 1200, stringFallBack,"Fallback"},
-		{"Test", 1002, stringFallBack,"Fallback"},
-		{"Test", 998, stringFallBack,"Test"},
-		{123, 0, nil,123},
-		{123, 800, nil,123},
-		{123, 1200, nil,nil},
-		{123, 1002, nil,nil},
-		{123, 998, nil,123},
-		{123, 0, intFallBack,123},
-		{123, 800, intFallBack,123},
-		{123, 1200, intFallBack,456},
-		{123, 1002, intFallBack,456},
-		{123, 998, intFallBack,123},
-		{dummyStruct, 0, nil,dummyStruct},
-		{dummyStruct, 800,nil, dummyStruct},
-		{dummyStruct, 1200, nil,nil},
-		{dummyStruct, 1002, nil,nil},
-		{dummyStruct, 998, nil,dummyStruct},
-		{dummyStruct, 0, dummyStructFallback,dummyStruct},
-		{dummyStruct, 800,dummyStructFallback, dummyStruct},
-		{dummyStruct, 1200, dummyStructFallback,nil},
-		{dummyStruct, 1002, dummyStructFallback,nil},
-		{dummyStruct, 998, dummyStructFallback,dummyStruct},
+		{"Test", 0, nil, "Test", 5 * time.Millisecond},
+		{"Test", 800, nil,"Test", 805 * time.Millisecond},
+		{"Test", 1200, nil,nil,1005 * time.Millisecond},
+		{"Test", 1002, nil,nil,1005 * time.Millisecond},
+		{"Test", 998, nil,"Test",1005 * time.Millisecond},
+		{"Test", 0, stringFallBack, "Test", 5 * time.Millisecond},
+		{"Test", 800, stringFallBack,"Test", 805 * time.Millisecond},
+		{"Test", 1200, stringFallBack,"Fallback",1005 * time.Millisecond},
+		{"Test", 1002, stringFallBack,"Fallback",1005 * time.Millisecond},
+		{"Test", 998, stringFallBack,"Test",1005 * time.Millisecond},
+		{123, 0, nil,123, 5 * time.Millisecond},
+		{123, 800, nil,123, 805 * time.Millisecond},
+		{123, 1200, nil,nil,1005 * time.Millisecond},
+		{123, 1002, nil,nil,1005 * time.Millisecond},
+		{123, 998, nil,123,1005 * time.Millisecond},
+		{123, 0, intFallBack,123, 5 * time.Millisecond},
+		{123, 800, intFallBack,123, 805 * time.Millisecond},
+		{123, 1200, intFallBack,456,1005 * time.Millisecond},
+		{123, 1002, intFallBack,456,1005 * time.Millisecond},
+		{123, 998, intFallBack,123,1005 * time.Millisecond},
+		{dummyStruct, 0, nil,dummyStruct, 5 * time.Millisecond},
+		{dummyStruct, 800,nil, dummyStruct, 805 * time.Millisecond},
+		{dummyStruct, 1200, nil,nil,1005 * time.Millisecond},
+		{dummyStruct, 1002, nil,nil,1005 * time.Millisecond},
+		{dummyStruct, 998, nil,dummyStruct,1005 * time.Millisecond},
+		{dummyStruct, 0, dummyStructFallback,dummyStruct, 5 * time.Millisecond},
+		{dummyStruct, 800,dummyStructFallback, dummyStruct, 805 * time.Millisecond},
+		{dummyStruct, 1200, dummyStructFallback,nil,1005 * time.Millisecond},
+		{dummyStruct, 1002, dummyStructFallback,nil,1005 * time.Millisecond},
+		{dummyStruct, 998, dummyStructFallback,dummyStruct,1005 * time.Millisecond},
 	}
 
 	for _,test := range tests {
 		start := time.Now()
-		result := Do(func(result chan<- interface{}){
+		result := Do(func(resultChan chan<- interface{}){
 
 			time.Sleep(test.sleep * time.Millisecond)
 
-			result <- test.input
+			resultChan <- test.input
 		}, test.fallback)
-
 
 		got := <- result
 		stop:= time.Now()
 
 		diff := stop.Sub(start)
 
-		maxDiff := (test.sleep * time.Millisecond) + (5 * time.Millisecond)
-
-		if diff > maxDiff {
+		if diff > test.maxDiff {
 			t.Errorf("%q @ %q: got %q must be max %q",
-				test.input, test.sleep * time.Millisecond, diff , maxDiff)
+				test.input, test.sleep * time.Millisecond, diff , test.maxDiff)
 		}
 
 		if got != test.want {
