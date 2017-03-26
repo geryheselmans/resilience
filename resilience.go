@@ -1,8 +1,8 @@
 package resilience
 
 import (
-	"time"
 	"./internal/semaphore"
+	"time"
 )
 
 func Do(commandKey string, semaphoreKey string, command func(chan<- interface{}), fallback func(chan<- interface{})) chan interface{} {

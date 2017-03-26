@@ -11,11 +11,11 @@ var initMapOnce sync.Once
 var mu sync.RWMutex
 var keyToSemaphoreMap map[string]Semaphore
 
-func initMap(){
+func initMap() {
 	keyToSemaphoreMap = make(map[string]Semaphore)
 }
 
-func GetSemaphore(semaphoreKey string) Semaphore{
+func GetSemaphore(semaphoreKey string) Semaphore {
 	initMapOnce.Do(initMap)
 
 	mu.RLock()
@@ -43,6 +43,3 @@ func createSemaphore() Semaphore {
 
 	return created
 }
-
-
-
