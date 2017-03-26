@@ -1,13 +1,20 @@
 package resilience
 
-import "time"
+import (
+	"./internal/semaphore"
+	"time"
+)
 
-func Do(command func(chan<- interface{}), fallback func(chan<- interface{})) chan interface{} {
+func Do(commandKey string, semaphoreKey string, command func(chan<- interface{}), fallback func(chan<- interface{})) chan interface{} {
 	returnChan := make(chan interface{})
 
 	go executeCommand(returnChan, command, fallback)
 
 	return returnChan
+}
+
+func checkAndExecute(commandKey string, semaphoreKey string, returnChan chan<- interface{}, command func(chan<- interface{}), fallback func(chan<- interface{})) {
+
 }
 
 func executeCommand(returnChan chan<- interface{}, command func(chan<- interface{}), fallback func(chan<- interface{})) {
@@ -23,6 +30,7 @@ func executeCommand(returnChan chan<- interface{}, command func(chan<- interface
 		executeFallBack(returnChan, fallback)
 	}
 }
+
 func executeFallBack(returnChan chan<- interface{}, fallback func(chan<- interface{})) {
 	if fallback != nil {
 		fallbackChan := make(chan interface{})
